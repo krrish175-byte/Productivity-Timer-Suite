@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Productivity Timers Suite</title>
+</head>
+<body>
+
+    <header>
+        <h1>Productivity Timers Suite</h1>
+    </header>
+
+    <main>
+
+        <!-- Stopwatch section -->
+        <section id="stopwatchSection">
+            <h2>Stopwatch</h2>
+
+            <div id="stopwatchDisplay">00:00:00.00</div>
+
+            <div class="controls">
+                <button id="startStopwatch">Start</button>
+                <button id="pauseStopwatch">Pause</button>
+                <button id="resetStopwatch">Reset</button>
+                <button id="lapStopwatch">Lap</button>
+            </div>
+
+            <h3>Laps</h3>
+            <ul id="stopwatchLaps"></ul>
+        </section>
+
+
+        <!-- Pomodoro Section -->
+        <section id="pomodoroSection">
+            <h2>Pomodoro Timer</h2>
+
+            <!-- Timer Display -->
+            <div id="pomodoroDisplay">25:00</div>
+
+            <!-- Pomodoro Controls -->
+            <div class="controls">
+                <button id="startPomodoro">Start</button>
+                <button id="pausePomodoro">Pause</button>
+                <button id="resetPomodoro">Reset</button>
+            </div>
+
+            <!-- Settings -->
+            <div id="pomodoroSettings">
+                <h3>Session Settings</h3>
+
+                <label>
+                    Work Minutes:
+                    <input type="number" id="workMinutes" value="25" min="1" />
+                </label>
+
+                <label>
+                    Break Minutes:
+                    <input type="number" id="breakMinutes" value="5" min="1" />
+                </label>
+
+                <button id="applySettings">Apply</button>
+            </div>
+
+            <h3>Pomodoro Sessions</h3>
+            <ul id="pomodoroHistory"></ul>
+        </section>
+
+    </main>
+
+</body>
+</html>
