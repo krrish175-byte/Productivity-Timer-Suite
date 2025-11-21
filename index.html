@@ -1,72 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Productivity Timers Suite</title>
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <nav class="nav-bar">
+        <button class="nav-button active" data-view="stopwatch">Stopwatch</button>
+        <button class="nav-button" data-view="pomodoro">Pomodoro</button>
+        <button class="nav-button" data-view="history">History</button>
+    </nav>
 
-    <header>
-        <h1>Productivity Timers Suite</h1>
-    </header>
-
-    <main>
-
-        <!-- Stopwatch section -->
-        <section id="stopwatchSection">
-            <h2>Stopwatch</h2>
-
-            <div id="stopwatchDisplay">00:00:00.00</div>
-
-            <div class="controls">
-                <button id="startStopwatch">Start</button>
-                <button id="pauseStopwatch">Pause</button>
-                <button id="resetStopwatch">Reset</button>
-                <button id="lapStopwatch">Lap</button>
+    <main class="main-container">
+        <!-- Stopwatch View -->
+        <section id="stopwatch-view" class="view active" data-view="stopwatch">
+            <h1>Stopwatch</h1>
+            <div class="timer-display" id="stopwatch-display">00:00.00</div>
+            <div class="timer-controls">
+                <button id="stopwatch-start" class="btn btn-primary">Start</button>
+                <button id="stopwatch-pause" class="btn btn-secondary">Pause</button>
+                <button id="stopwatch-reset" class="btn btn-secondary">Reset</button>
+                <button id="stopwatch-save" class="btn btn-success">Save</button>
             </div>
-
-            <h3>Laps</h3>
-            <ul id="stopwatchLaps"></ul>
         </section>
 
-
-        <!-- Pomodoro Section -->
-        <section id="pomodoroSection">
-            <h2>Pomodoro Timer</h2>
-
-            <!-- Timer Display -->
-            <div id="pomodoroDisplay">25:00</div>
-
-            <!-- Pomodoro Controls -->
-            <div class="controls">
-                <button id="startPomodoro">Start</button>
-                <button id="pausePomodoro">Pause</button>
-                <button id="resetPomodoro">Reset</button>
+        <!-- Pomodoro View -->
+        <section id="pomodoro-view" class="view" data-view="pomodoro">
+            <h1>Pomodoro Timer</h1>
+            <div class="mode-indicator" id="pomodoro-mode">Work Session</div>
+            <div class="timer-display" id="pomodoro-display">25:00</div>
+            <div class="timer-controls">
+                <button id="pomodoro-start" class="btn btn-primary">Start</button>
+                <button id="pomodoro-pause" class="btn btn-secondary">Pause</button>
+                <button id="pomodoro-reset" class="btn btn-secondary">Reset</button>
+                <button id="pomodoro-save" class="btn btn-success">Save</button>
             </div>
-
-            <!-- Settings -->
-            <div id="pomodoroSettings">
-                <h3>Session Settings</h3>
-
-                <label>
-                    Work Minutes:
-                    <input type="number" id="workMinutes" value="25" min="1" />
-                </label>
-
-                <label>
-                    Break Minutes:
-                    <input type="number" id="breakMinutes" value="5" min="1" />
-                </label>
-
-                <button id="applySettings">Apply</button>
-            </div>
-
-            <h3>Pomodoro Sessions</h3>
-            <ul id="pomodoroHistory"></ul>
         </section>
 
+        <!-- History View -->
+        <section id="history-view" class="view" data-view="history">
+            <h1>Session History</h1>
+            <div id="history-content">
+                <p class="empty-message">No sessions saved yet. Complete a timer session and save it to see it here.</p>
+            </div>
+        </section>
     </main>
 
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
