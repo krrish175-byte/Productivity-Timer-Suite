@@ -4,51 +4,136 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Productivity Timers Suite</title>
-    <link rel="stylesheet" href="css/themes.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="themes.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <nav class="nav-bar">
-        <button class="nav-button active" data-view="stopwatch">Stopwatch</button>
-        <button class="nav-button" data-view="pomodoro">Pomodoro</button>
-        <button class="nav-button" data-view="history">History</button>
+    <nav>
+        <ul class="nav-tabs">
+            <li><button id="tab-stopwatch" class="nav-tab active" data-tab="stopwatch">Stopwatch</button></li>
+            <li><button id="tab-pomodoro" class="nav-tab" data-tab="pomodoro">Pomodoro</button></li>
+            <li><button id="tab-history" class="nav-tab" data-tab="history">History</button></li>
+        </ul>
     </nav>
 
-    <main class="main-container">
-        <!-- Stopwatch View -->
-        <section id="stopwatch-view" class="view active" data-view="stopwatch">
+    <main>
+        <section id="section-stopwatch" class="timer-section active">
             <h1>Stopwatch</h1>
-            <div class="timer-display" id="stopwatch-display">00:00.00</div>
-            <div class="timer-controls">
-                <button id="stopwatch-start" class="btn btn-primary">Start</button>
-                <button id="stopwatch-pause" class="btn btn-secondary">Pause</button>
-                <button id="stopwatch-reset" class="btn btn-secondary">Reset</button>
-                <button id="stopwatch-save" class="btn btn-success">Save</button>
-            </div>
+            <div id="stopwatch-container"></div>
         </section>
 
-        <!-- Pomodoro View -->
-        <section id="pomodoro-view" class="view" data-view="pomodoro">
+        <section id="section-pomodoro" class="timer-section">
             <h1>Pomodoro Timer</h1>
-            <div class="mode-indicator" id="pomodoro-mode">Work Session</div>
-            <div class="timer-display" id="pomodoro-display">25:00</div>
-            <div class="timer-controls">
-                <button id="pomodoro-start" class="btn btn-primary">Start</button>
-                <button id="pomodoro-pause" class="btn btn-secondary">Pause</button>
-                <button id="pomodoro-reset" class="btn btn-secondary">Reset</button>
-                <button id="pomodoro-save" class="btn btn-success">Save</button>
+            
+            <!-- Settings Panel -->
+            <div id="pomodoro-settings" class="settings-panel">
+                <button id="settings-toggle" class="settings-toggle" title="Settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m-6-6h6m6 0h-6"></path>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+                
+                <div id="settings-dropdown" class="settings-dropdown" style="display: none;">
+                    <h3>Timer Settings</h3>
+                    <div class="setting-group">
+                        <label for="work-duration">Work Duration (minutes)</label>
+                        <input type="number" id="work-duration" min="1" max="60" value="25" />
+                    </div>
+                    <div class="setting-group">
+                        <label for="break-duration">Break Duration (minutes)</label>
+                        <input type="number" id="break-duration" min="1" max="30" value="5" />
+                    </div>
+                    
+                    <h3 style="margin-top: var(--spacing-lg); margin-bottom: var(--spacing-md);">Detection Settings</h3>
+                    
+                    <div class="setting-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="face-tracking-toggle" checked />
+                            <span>Face Tracking Visualization</span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="microphone-detection-toggle" />
+                            <span>Microphone Distraction Detection</span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-group" id="noise-threshold-group" style="display: none;">
+                        <label for="noise-threshold">Noise Sensitivity (0-100)</label>
+                        <input type="range" id="noise-threshold" min="0" max="100" value="50" />
+                        <span id="noise-threshold-value" class="range-value">50</span>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="keyboard-detection-toggle" checked />
+                            <span>Keyboard Inactivity Detection</span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-group" id="inactivity-threshold-group">
+                        <label for="inactivity-threshold">Inactivity Alert (minutes)</label>
+                        <input type="number" id="inactivity-threshold" min="1" max="30" value="5" />
+                    </div>
+                    
+                    <button id="save-settings" class="btn btn-primary btn-sm">Apply Settings</button>
+                </div>
+            </div>
+            
+            <div id="pomodoro-container"></div>
+            
+            <!-- Camera preview (hidden by default) -->
+            <div id="camera-preview" class="camera-preview" style="display: none;">
+                <div style="position: relative; display: inline-block; margin: 0 auto;">
+                    <video id="camera-video" autoplay playsinline></video>
+                </div>
+                <div class="camera-status">
+                    <span class="status-indicator"></span>
+                    <span class="status-text">Monitoring</span>
+                </div>
+            </div>
+            
+            <!-- Warning message (hidden by default) -->
+            <div id="warning-message" class="warning-message" style="display: none;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <span>User not detected — Timer paused</span>
+            </div>
+            
+            <!-- Distraction message (hidden by default) -->
+            <div id="distraction-message" class="distraction-message" style="display: none;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span>Distraction detected. Stay focused!</span>
+            </div>
+            
+            <!-- Inactivity message (hidden by default) -->
+            <div id="inactivity-message" class="inactivity-message" style="display: none;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>Are you still working on your task?</span>
             </div>
         </section>
 
-        <!-- History View -->
-        <section id="history-view" class="view" data-view="history">
+        <section id="section-history" class="timer-section">
             <h1>Session History</h1>
-            <div id="history-content">
-                <p class="empty-message">No sessions saved yet. Complete a timer session and save it to see it here.</p>
-            </div>
+            <div id="history-container"></div>
         </section>
     </main>
 
-    <script type="module" src="js/app.js"></script>
+    <!-- Load main application as ES6 module -->
+    <script type="module" src="app.js"></script>
 </body>
 </html>
