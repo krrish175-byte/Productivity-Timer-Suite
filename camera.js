@@ -71,6 +71,8 @@ export async function startCamera(videoEl) {
     }
     
     // Initialize canvas for fallback detection
+    console.log(faceDetector);
+    
     if (!faceDetector) {
       const canvas = document.createElement('canvas');
       canvas.width = videoElement.videoWidth || 640;

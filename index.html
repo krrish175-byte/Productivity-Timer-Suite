@@ -46,38 +46,11 @@
                         <input type="number" id="break-duration" min="1" max="30" value="5" />
                     </div>
                     
-                    <h3 style="margin-top: var(--spacing-lg); margin-bottom: var(--spacing-md);">Detection Settings</h3>
-                    
                     <div class="setting-group">
                         <label class="toggle-label">
                             <input type="checkbox" id="face-tracking-toggle" checked />
                             <span>Face Tracking Visualization</span>
                         </label>
-                    </div>
-                    
-                    <div class="setting-group">
-                        <label class="toggle-label">
-                            <input type="checkbox" id="microphone-detection-toggle" />
-                            <span>Microphone Distraction Detection</span>
-                        </label>
-                    </div>
-                    
-                    <div class="setting-group" id="noise-threshold-group" style="display: none;">
-                        <label for="noise-threshold">Noise Sensitivity (0-100)</label>
-                        <input type="range" id="noise-threshold" min="0" max="100" value="50" />
-                        <span id="noise-threshold-value" class="range-value">50</span>
-                    </div>
-                    
-                    <div class="setting-group">
-                        <label class="toggle-label">
-                            <input type="checkbox" id="keyboard-detection-toggle" checked />
-                            <span>Keyboard Inactivity Detection</span>
-                        </label>
-                    </div>
-                    
-                    <div class="setting-group" id="inactivity-threshold-group">
-                        <label for="inactivity-threshold">Inactivity Alert (minutes)</label>
-                        <input type="number" id="inactivity-threshold" min="1" max="30" value="5" />
                     </div>
                     
                     <button id="save-settings" class="btn btn-primary btn-sm">Apply Settings</button>
@@ -105,25 +78,6 @@
                     <line x1="12" y1="17" x2="12.01" y2="17"></line>
                 </svg>
                 <span>User not detected — Timer paused</span>
-            </div>
-            
-            <!-- Distraction message (hidden by default) -->
-            <div id="distraction-message" class="distraction-message" style="display: none;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                <span>Distraction detected. Stay focused!</span>
-            </div>
-            
-            <!-- Inactivity message (hidden by default) -->
-            <div id="inactivity-message" class="inactivity-message" style="display: none;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-                <span>Are you still working on your task?</span>
             </div>
         </section>
 

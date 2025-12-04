@@ -10,7 +10,6 @@ import * as stopwatch from './modules/stopwatch.js';
 import * as pomodoro from './modules/pomodoro.js';
 import * as camera from './camera.js';
 import { stopContinuousAlert } from './audio.js';
-import * as distraction from './distraction.js';
 
 // Application state
 let currentTab = 'stopwatch';
@@ -41,9 +40,6 @@ async function init() {
 
     // Set up Pomodoro settings
     setupPomodoroSettings();
-    
-    // Initialize distraction detection
-    await initDistractionDetection();
 
     // Set default tab to Stopwatch
     switchTab('stopwatch');
@@ -74,56 +70,6 @@ function setupNavigation() {
 }
 
 /**
- * Initialize distraction detection
- */
-async function initDistractionDetection() {
-  await distraction.initDistractionDetection({
-    onDistraction: handleDistraction,
-    onInactivity: handleInactivity,
-    enableMicrophone: false, // Default off
-    enableKeyboard: true, // Default on
-    noiseThreshold: 50,
-    inactivityMinutes: 5
-  });
-}
-
-/**
- * Handle distraction detection
- */
-function handleDistraction(data) {
-  const distractionMessage = document.getElementById('distraction-message');
-  
-  if (distractionMessage) {
-    distractionMessage.style.display = 'flex';
-    
-    // Auto-hide after 5 seconds
-    setTimeout(() => {
-      distractionMessage.style.display = 'none';
-    }, 5000);
-  }
-  
-  console.log('Distraction detected:', data);
-}
-
-/**
- * Handle inactivity detection
- */
-function handleInactivity(data) {
-  const inactivityMessage = document.getElementById('inactivity-message');
-  
-  if (inactivityMessage) {
-    inactivityMessage.style.display = 'flex';
-    
-    // Auto-hide after 10 seconds
-    setTimeout(() => {
-      inactivityMessage.style.display = 'none';
-    }, 10000);
-  }
-  
-  console.log('Inactivity detected:', data);
-}
-
-/**
  * Set up Pomodoro settings panel
  */
 function setupPomodoroSettings() {
@@ -133,13 +79,6 @@ function setupPomodoroSettings() {
   const workDurationInput = document.getElementById('work-duration');
   const breakDurationInput = document.getElementById('break-duration');
   const faceTrackingToggle = document.getElementById('face-tracking-toggle');
-  const microphoneToggle = document.getElementById('microphone-detection-toggle');
-  const keyboardToggle = document.getElementById('keyboard-detection-toggle');
-  const noiseThresholdInput = document.getElementById('noise-threshold');
-  const noiseThresholdValue = document.getElementById('noise-threshold-value');
-  const noiseThresholdGroup = document.getElementById('noise-threshold-group');
-  const inactivityThresholdInput = document.getElementById('inactivity-threshold');
-  const inactivityThresholdGroup = document.getElementById('inactivity-threshold-group');
   
   // Toggle settings dropdown
   settingsToggle.addEventListener('click', () => {
@@ -157,54 +96,6 @@ function setupPomodoroSettings() {
   // Face tracking toggle
   faceTrackingToggle.addEventListener('change', (event) => {
     camera.setFaceTracking(event.target.checked);
-  });
-  
-  // Microphone detection toggle
-  microphoneToggle.addEventListener('change', async (event) => {
-    const enabled = event.target.checked;
-    distraction.setMicrophoneEnabled(enabled);
-    noiseThresholdGroup.style.display = enabled ? 'block' : 'none';
-    
-    if (enabled && currentTab === 'pomodoro') {
-      try {
-        await distraction.startMicrophoneDetection();
-      } catch (error) {
-        console.error('Failed to start microphone detection:', error);
-        alert(error.message);
-        microphoneToggle.checked = false;
-        noiseThresholdGroup.style.display = 'none';
-      }
-    } else {
-      distraction.stopMicrophoneDetection();
-    }
-  });
-  
-  // Keyboard detection toggle
-  keyboardToggle.addEventListener('change', (event) => {
-    const enabled = event.target.checked;
-    distraction.setKeyboardEnabled(enabled);
-    inactivityThresholdGroup.style.display = enabled ? 'block' : 'none';
-    
-    if (enabled && currentTab === 'pomodoro') {
-      distraction.startKeyboardDetection();
-    } else {
-      distraction.stopKeyboardDetection();
-    }
-  });
-  
-  // Noise threshold slider
-  noiseThresholdInput.addEventListener('input', (event) => {
-    const value = event.target.value;
-    noiseThresholdValue.textContent = value;
-    distraction.setNoiseThreshold(parseInt(value, 10));
-  });
-  
-  // Inactivity threshold input
-  inactivityThresholdInput.addEventListener('change', (event) => {
-    const minutes = parseInt(event.target.value, 10);
-    if (minutes >= 1 && minutes <= 30) {
-      distraction.setInactivityThreshold(minutes);
-    }
   });
   
   // Save settings
@@ -232,24 +123,15 @@ function setupPomodoroSettings() {
  * @param {string} tabName - The name of the tab to switch to
  */
 function handleTabSwitch(tabName) {
-  // Stop camera and distraction detection if switching away from Pomodoro
+  // Stop camera if switching away from Pomodoro
   if (currentTab === 'pomodoro' && tabName !== 'pomodoro') {
     handleCameraStop();
     stopContinuousAlert(); // Stop any alert sounds
-    distraction.stopAllDetection(); // Stop distraction detection
   }
 
   // Switch to the new tab
   switchTab(tabName);
   currentTab = tabName;
-
-  // Start distraction detection if switching to Pomodoro
-  if (tabName === 'pomodoro') {
-    const keyboardToggle = document.getElementById('keyboard-detection-toggle');
-    if (keyboardToggle && keyboardToggle.checked) {
-      distraction.startKeyboardDetection();
-    }
-  }
 
   // Render history if switching to History tab
   if (tabName === 'history') {
@@ -377,22 +259,6 @@ async function handleCameraStart() {
     );
 
     console.log('Camera and presence detection started');
-    
-    // Start distraction detection if enabled
-    const microphoneToggle = document.getElementById('microphone-detection-toggle');
-    const keyboardToggle = document.getElementById('keyboard-detection-toggle');
-    
-    if (microphoneToggle && microphoneToggle.checked) {
-      try {
-        await distraction.startMicrophoneDetection();
-      } catch (error) {
-        console.error('Failed to start microphone detection:', error);
-      }
-    }
-    
-    if (keyboardToggle && keyboardToggle.checked) {
-      distraction.startKeyboardDetection();
-    }
   } catch (error) {
     console.error('Error starting camera:', error);
   }
@@ -411,9 +277,6 @@ function handleCameraStop() {
 
     // Stop camera
     camera.stopCamera();
-    
-    // Stop distraction detection
-    distraction.stopAllDetection();
 
     // Hide camera preview
     cameraPreview.style.display = 'none';
