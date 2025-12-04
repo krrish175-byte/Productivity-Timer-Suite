@@ -105,6 +105,11 @@ export function start() {
 
   // Stop any continuous alert when starting
   stopContinuousAlert();
+  
+  // Hide warning message if visible
+  if (warningElement) {
+    warningElement.style.display = 'none';
+  }
 
   state.isRunning = true;
   state.lastTickTime = Date.now();
@@ -119,6 +124,7 @@ export function start() {
   }
 
   // Start camera if in work mode and callback is provided
+  // This will restart monitoring even if it was stopped due to absence
   if (state.mode === 'work' && cameraCallbacks.onStart) {
     try {
       cameraCallbacks.onStart();
@@ -205,13 +211,23 @@ export function reset() {
 
 /**
  * Handle presence lost event from camera
- * Automatically pauses timer and shows warning message
+ * Automatically pauses timer, stops monitoring, and shows warning message
  */
 export function handlePresenceLost() {
-  console.log('Presence lost - pausing timer');
+  console.log('Presence lost - pausing timer and stopping monitoring');
   
   // Pause the timer
   pause();
+
+  // Stop camera monitoring via callback
+  if (cameraCallbacks.onStop) {
+    try {
+      cameraCallbacks.onStop();
+      console.log('Camera monitoring stopped due to absence');
+    } catch (error) {
+      console.error('Error stopping camera:', error);
+    }
+  }
 
   // Play absence alert sound
   playAbsenceAlert();
@@ -225,6 +241,7 @@ export function handlePresenceLost() {
 /**
  * Handle presence restored event from camera
  * Hides warning message (timer stays paused, requires manual resume)
+ * Note: This won't be called since monitoring stops on absence
  */
 export function handlePresenceRestored() {
   console.log('Presence restored - hiding warning');
