@@ -28,7 +28,7 @@
 5. View and delete past sessions in History  
 6. Enable camera presence detection from Pomodoro settings  
 
-## 📈 Future Improvements
+## Future Improvements
 
 - Add weekly/monthly analytics  
 - Add long-break cycles  
@@ -47,7 +47,7 @@ Frontend Developer Associate
 B.Tech CSE (AI/ML)
 2025 - 2029
 
-## ⭐ Acknowledgments
+## Acknowledgments
 
 - HTML5 & CSS3 docs  
 - MDN Web Docs  
@@ -55,7 +55,7 @@ B.Tech CSE (AI/ML)
 - IndexedDB documentation  
 - Inspirations from productivity apps like Forest & Clockify
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License.
 
