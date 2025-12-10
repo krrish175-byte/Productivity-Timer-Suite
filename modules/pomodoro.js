@@ -4,54 +4,63 @@
  * Uses setInterval with drift correction for accurate countdown
  */
 
+// Import function to format milliseconds into readable time strings
 import { formatTime } from '../utils.js';
+// Import function to save completed sessions to database
 import { addSession } from '../db.js';
-import { playTimerComplete, playContinuousAlert, stopContinuousAlert, playAbsenceAlert } from '../audio.js';
+// Import audio functions for timer completion and absence alerts
+import { playContinuousAlert, stopContinuousAlert, playAbsenceAlert } from '../audio.js';
 
-// Default durations (can be customized)
-let WORK_DURATION = 25 * 60 * 1000; // 25 minutes in milliseconds
-let BREAK_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+// Default work duration: 25 minutes converted to milliseconds
+let WORK_DURATION = 25 * 60 * 1000;
+// Default break duration: 5 minutes converted to milliseconds
+let BREAK_DURATION = 5 * 60 * 1000;
 
-// Internal state
+// Object to track the current state of the pomodoro timer
 let state = {
-  isRunning: false,
-  mode: 'work',              // 'work' or 'break'
-  remainingTime: WORK_DURATION, // Time remaining in milliseconds
-  intervalId: null,          // setInterval ID for cleanup
-  lastTickTime: 0,           // Timestamp of last tick for drift correction
-  workSessionStartTime: 0    // Track when work session started for saving
+  isRunning: false,                    // Whether timer is currently counting down
+  mode: 'work',                        // Current mode: 'work' or 'break'
+  remainingTime: WORK_DURATION,        // Milliseconds left in current session
+  intervalId: null,                    // ID of setInterval for cleanup
+  lastTickTime: 0,                     // Timestamp of last tick for drift correction
+  workSessionStartTime: 0              // When current work session started (for database)
 };
 
-// DOM elements
-let container = null;
-let displayElement = null;
-let modeElement = null;
-let startButton = null;
-let pauseButton = null;
-let resetButton = null;
-let warningElement = null;
+// Variables to hold references to DOM elements
+let container = null;        // Main container element for pomodoro UI
+let displayElement = null;   // Element showing the countdown time
+let modeElement = null;      // Element showing "Work Time" or "Break Time"
+let startButton = null;      // Button to start/resume timer
+let pauseButton = null;      // Button to pause timer
+let resetButton = null;      // Button to reset timer to initial state
+let warningElement = null;   // Element showing absence warning message
 
-// Camera callbacks
+// Object containing callback functions for camera control
 let cameraCallbacks = {
-  onStart: null,
-  onStop: null
+  onStart: null,  // Function to call when camera should start
+  onStop: null    // Function to call when camera should stop
 };
 
 /**
- * Set custom durations for work and break
+ * Set custom durations for work and break periods
  * @param {number} workMinutes - Work duration in minutes
  * @param {number} breakMinutes - Break duration in minutes
  */
 export function setDurations(workMinutes, breakMinutes) {
+  // Convert work minutes to milliseconds and store globally
   WORK_DURATION = workMinutes * 60 * 1000;
+  // Convert break minutes to milliseconds and store globally
   BREAK_DURATION = breakMinutes * 60 * 1000;
   
-  // Reset to apply new durations
+  // Check if we need to update current session with new work duration
   if (state.mode === 'work' && state.remainingTime === (25 * 60 * 1000)) {
+    // Update remaining time to new work duration
     state.remainingTime = WORK_DURATION;
+    // Refresh the display to show new time
     updateDisplay();
   }
   
+  // Log the duration changes to console for debugging
   console.log(`Durations updated: Work=${workMinutes}min, Break=${breakMinutes}min`);
 }
 
