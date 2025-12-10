@@ -3,29 +3,51 @@
 // Enhanced for better accuracy with multiple users
 // Includes face detection visualization and tracking
 
+// MediaStream object from getUserMedia for webcam access
 let videoStream = null;
+// FaceDetector API instance for face detection (Chrome only)
 let faceDetector = null;
+// setInterval ID for presence detection loop
 let detectionInterval = null;
+// HTML video element that displays the camera feed
 let videoElement = null;
+// Canvas 2D context for motion detection fallback
 let canvasContext = null;
+// Canvas element for drawing face tracking overlays
 let overlayCanvas = null;
+// 2D context for drawing on overlay canvas
 let overlayContext = null;
+// ImageData from previous frame for motion detection
 let previousFrameData = null;
+// Counter for consecutive detection misses
 let consecutiveMisses = 0;
+// Counter for consecutive successful detections
 let consecutiveDetections = 0;
+// Boolean flag tracking current presence state
 let isUserPresent = true;
+// Callback function to call when presence is detected after absence
 let onPresentCallback = null;
+// Callback function to call when absence is detected
 let onMissingCallback = null;
+// Number of faces detected when monitoring started
 let initialFaceCount = 0;
+// Array storing recent detection results for smoothing
 let detectionHistory = [];
+// Array of currently detected face objects with bounding boxes
 let detectedFaces = [];
+// Boolean flag to enable/disable face tracking visualization
 let faceTrackingEnabled = true;
 
-const DETECTION_INTERVAL_MS = 300; // Faster detection for better accuracy
-const ABSENCE_THRESHOLD_MS = 2000; // 2 seconds
+// Time interval between presence detection checks (milliseconds)
+const DETECTION_INTERVAL_MS = 300;
+// Time threshold for considering user absent (milliseconds)
+const ABSENCE_THRESHOLD_MS = 2000;
+// Number of consecutive misses needed to trigger absence
 const MISSES_THRESHOLD = Math.ceil(ABSENCE_THRESHOLD_MS / DETECTION_INTERVAL_MS);
-const DETECTION_THRESHOLD = 3; // Require 3 consecutive detections to confirm presence
-const HISTORY_SIZE = 10; // Keep last 10 detection results for smoothing
+// Number of consecutive detections needed to confirm presence
+const DETECTION_THRESHOLD = 3;
+// Maximum number of detection results to keep in history
+const HISTORY_SIZE = 10;
 
 /**
  * Starts the webcam and begins video stream
