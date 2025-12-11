@@ -1,28 +1,46 @@
 /**
- * Stopwatch Module
+ * Stopwatch Module - High-precision timing with smooth display updates
  * Implements stopwatch functionality with start, pause, reset, and save operations
- * Uses requestAnimationFrame for smooth 60fps updates
+ * Uses requestAnimationFrame for smooth 60fps updates and high precision timing
+ * Effects on webpage: Provides accurate time tracking for any duration activities
+ * Used by: Main app for flexible timing needs, different from structured Pomodoro sessions
+ * Removal impact: No flexible timing capability, users limited to fixed Pomodoro intervals
  */
 
+// Import function to format milliseconds into readable time strings for display
+// Effects: Enables proper time formatting in stopwatch display
+// Removal impact: Stopwatch would show raw milliseconds, making it unreadable
 import { formatTime } from '../utils.js';
+
+// Import function to save completed timing sessions to database for history tracking
+// Effects: Enables persistence of stopwatch sessions for activity tracking
+// Removal impact: No session history, users couldn't track timed activities
 import { addSession } from '../db.js';
+
+// Import audio function for success feedback when saving sessions
+// Effects: Provides positive audio confirmation when sessions are saved
+// Removal impact: No audio feedback for save operations, less satisfying UX
 import { playSuccess } from '../audio.js';
 
-// Internal state
+// Internal state object for stopwatch timing and control
+// Effects: Maintains precise timing state for accurate stopwatch functionality
+// Removal impact: No state tracking, stopwatch couldn't function or maintain accuracy
 let state = {
-  isRunning: false,
-  startTime: 0,           // DOMHighResTimeStamp when timer started/resumed
-  elapsedTime: 0,         // Accumulated time in milliseconds
-  animationFrameId: null  // requestAnimationFrame ID for cleanup
+  isRunning: false,           // Whether stopwatch is currently running
+  startTime: 0,               // DOMHighResTimeStamp when timer started/resumed for precision
+  elapsedTime: 0,             // Accumulated time in milliseconds across pause/resume cycles
+  animationFrameId: null      // requestAnimationFrame ID for cleanup and smooth updates
 };
 
-// DOM elements
-let container = null;
-let displayElement = null;
-let startButton = null;
-let pauseButton = null;
-let resetButton = null;
-let saveButton = null;
+// DOM element references for UI manipulation and display updates
+// Effects: Provides access to UI elements for real-time updates and interactions
+// Removal impact: No UI control, stopwatch display and controls would be broken
+let container = null;        // Main container element for stopwatch UI structure
+let displayElement = null;   // Element showing the current elapsed time to user
+let startButton = null;      // Button to start/resume stopwatch timing
+let pauseButton = null;      // Button to pause stopwatch while preserving elapsed time
+let resetButton = null;      // Button to reset stopwatch to zero
+let saveButton = null;       // Button to save current elapsed time to database
 
 /**
  * Initialize the stopwatch module
