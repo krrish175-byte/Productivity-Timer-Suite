@@ -1,108 +1,218 @@
-// Camera module for webcam access and presence detection
-// Supports FaceDetector API with Canvas-based motion detection fallback
-// Enhanced for better accuracy with multiple users
-// Includes face detection visualization and tracking
+/**
+ * Camera Module - Webcam access and intelligent presence detection system
+ * Supports FaceDetector API with Canvas-based motion detection fallback
+ * Enhanced for better accuracy with multiple users and visual feedback
+ * Effects on webpage: Enables automatic pause when user leaves during pomodoro sessions
+ * Used by: Pomodoro timer for productivity monitoring and automatic session management
+ * Removal impact: No presence detection, users could game the system by leaving during work
+ */
 
-// MediaStream object from getUserMedia for webcam access
+// MediaStream object from getUserMedia API for webcam access
+// Effects: Provides live video feed for presence detection and user monitoring
+// Removal impact: No camera access, presence detection would be impossible
 let videoStream = null;
-// FaceDetector API instance for face detection (Chrome only)
+
+// FaceDetector API instance for advanced face detection (Chrome/Edge only)
+// Effects: Enables accurate face detection with bounding boxes and landmarks
+// Removal impact: Falls back to motion detection, less accurate presence monitoring
 let faceDetector = null;
-// setInterval ID for presence detection loop
+
+// setInterval ID for continuous presence detection loop
+// Effects: Stores reference to detection timer for cleanup and control
+// Removal impact: Detection loop could not be stopped, wasting resources
 let detectionInterval = null;
-// HTML video element that displays the camera feed
+
+// HTML video element that displays the live camera feed
+// Effects: Shows camera preview to user and provides source for detection algorithms
+// Removal impact: No video source for detection, no visual feedback to user
 let videoElement = null;
-// Canvas 2D context for motion detection fallback
+
+// Canvas 2D context for motion detection fallback when FaceDetector unavailable
+// Effects: Enables frame-by-frame analysis for motion-based presence detection
+// Removal impact: No fallback detection method, system would fail on unsupported browsers
 let canvasContext = null;
-// Canvas element for drawing face tracking overlays
+
+// Canvas element for drawing face tracking overlays and visual feedback
+// Effects: Provides visual indication of detected faces and system status
+// Removal impact: No visual feedback about detection status, user wouldn't know if system is working
 let overlayCanvas = null;
-// 2D context for drawing on overlay canvas
+
+// 2D context for drawing face tracking rectangles and status indicators
+// Effects: Enables drawing of face bounding boxes and detection visualization
+// Removal impact: No visual overlay, user couldn't see what system is detecting
 let overlayContext = null;
-// ImageData from previous frame for motion detection
+
+// ImageData from previous video frame for motion detection comparison
+// Effects: Stores reference frame for detecting changes between video frames
+// Removal impact: Motion detection would fail, no way to detect movement
 let previousFrameData = null;
-// Counter for consecutive detection misses
+
+// Counter for consecutive detection misses to prevent false absence alerts
+// Effects: Prevents brief detection failures from triggering absence notifications
+// Removal impact: System would be too sensitive, pausing for momentary detection glitches
 let consecutiveMisses = 0;
-// Counter for consecutive successful detections
+
+// Counter for consecutive successful detections to confirm presence return
+// Effects: Prevents brief detections from triggering false presence notifications
+// Removal impact: System would be too sensitive to noise and false positives
 let consecutiveDetections = 0;
-// Boolean flag tracking current presence state
+
+// Boolean flag tracking current user presence state
+// Effects: Maintains system state to trigger appropriate callbacks on state changes
+// Removal impact: No state tracking, callbacks would fire constantly
 let isUserPresent = true;
-// Callback function to call when presence is detected after absence
+
+// Callback function to call when user presence is detected after absence
+// Effects: Notifies pomodoro timer when user returns to resume session
+// Removal impact: Timer wouldn't know when user returns, no automatic resume capability
 let onPresentCallback = null;
-// Callback function to call when absence is detected
+
+// Callback function to call when user absence is detected
+// Effects: Notifies pomodoro timer to pause when user leaves workspace
+// Removal impact: Timer wouldn't pause when user leaves, defeating productivity monitoring
 let onMissingCallback = null;
-// Number of faces detected when monitoring started
+
+// Number of faces detected when monitoring started for multi-user scenarios
+// Effects: Establishes baseline for detecting when original user(s) leave
+// Removal impact: System couldn't distinguish between different users or group changes
 let initialFaceCount = 0;
-// Array storing recent detection results for smoothing
+
+// Array storing recent detection results for smoothing and noise reduction
+// Effects: Reduces false positives by analyzing detection patterns over time
+// Removal impact: System would be noisy, triggering on brief detection failures
 let detectionHistory = [];
-// Array of currently detected face objects with bounding boxes
+
+// Array of currently detected face objects with bounding boxes and landmarks
+// Effects: Stores face data for visualization and multi-face tracking
+// Removal impact: No face visualization, no data for drawing overlays
 let detectedFaces = [];
-// Boolean flag to enable/disable face tracking visualization
+
+// Boolean flag to enable/disable face tracking visualization overlay
+// Effects: Controls whether face detection boxes and status are shown to user
+// Removal impact: Always show visualization, no way to disable for privacy/performance
 let faceTrackingEnabled = true;
 
-// Time interval between presence detection checks (milliseconds)
+// Time interval between presence detection checks in milliseconds
+// Effects: Controls how frequently the system checks for user presence
+// Removal impact: No detection timing, system couldn't monitor presence
 const DETECTION_INTERVAL_MS = 300;
-// Time threshold for considering user absent (milliseconds)
+
+// Time threshold for considering user absent in milliseconds (2 seconds)
+// Effects: Determines how long user can be away before triggering absence alert
+// Removal impact: No absence threshold, system would trigger immediately or never
 const ABSENCE_THRESHOLD_MS = 2000;
-// Number of consecutive misses needed to trigger absence
+
+// Number of consecutive detection misses needed to trigger absence notification
+// Effects: Prevents false absence alerts from brief detection failures
+// Removal impact: System would be too sensitive, triggering on single missed detections
 const MISSES_THRESHOLD = Math.ceil(ABSENCE_THRESHOLD_MS / DETECTION_INTERVAL_MS);
-// Number of consecutive detections needed to confirm presence
+
+// Number of consecutive successful detections needed to confirm user has returned
+// Effects: Prevents false presence alerts from brief detection successes
+// Removal impact: System would be too sensitive, triggering on single detections
 const DETECTION_THRESHOLD = 3;
-// Maximum number of detection results to keep in history
+
+// Maximum number of recent detection results to keep for smoothing analysis
+// Effects: Provides data for confidence calculations and noise reduction
+// Removal impact: No historical data for smoothing, system would be noisy
 const HISTORY_SIZE = 10;
 
 /**
- * Starts the webcam and begins video stream
- * @param {HTMLVideoElement} videoEl - The video element to display the stream
- * @returns {Promise<void>}
+ * Starts the webcam and initializes video stream for presence detection
+ * Effects on webpage: Activates camera preview and enables presence monitoring
+ * Called by: Pomodoro timer start, camera initialization in app.js
+ * Removal impact: No camera access, presence detection system would be non-functional
+ * @param {HTMLVideoElement} videoEl - The video element to display the camera stream
+ * @returns {Promise<void>} Promise that resolves when camera is ready for detection
  */
 export async function startCamera(videoEl) {
   try {
+    // Store reference to video element for use throughout the module
+    // Effects: Provides access to video element for detection algorithms
+    // Removal impact: No video source for detection, system would fail
     videoElement = videoEl;
     
-    // Request webcam access
+    // Request webcam access with specific resolution for optimal performance
+    // Effects: Activates user's camera and requests permission if not granted
+    // Removal impact: No camera stream, entire presence detection system fails
     videoStream = await navigator.mediaDevices.getUserMedia({
-      video: { width: 640, height: 480 }
+      video: { width: 640, height: 480 }  // Balanced resolution for performance vs quality
     });
     
-    // Attach stream to video element
+    // Attach camera stream to video element for display and processing
+    // Effects: Shows live camera feed to user and provides source for detection
+    // Removal impact: No video display or detection source
     videoElement.srcObject = videoStream;
+    
+    // Start video playback to begin streaming
+    // Effects: Begins live video display and makes frames available for detection
+    // Removal impact: Video would be loaded but not playing, no detection possible
     await videoElement.play();
     
-    // Wait for video metadata to load
+    // Wait for video metadata to load to ensure dimensions are available
+    // Effects: Ensures video dimensions are known before creating detection canvas
+    // Removal impact: Canvas sizing would fail, detection algorithms would break
     await new Promise((resolve) => {
       if (videoElement.videoWidth > 0) {
+        // Video metadata already loaded, proceed immediately
         resolve();
       } else {
+        // Wait for metadata load event to get video dimensions
         videoElement.addEventListener('loadedmetadata', resolve, { once: true });
       }
     });
     
     // Create overlay canvas for face tracking visualization
+    // Effects: Sets up visual feedback system for detected faces
+    // Removal impact: No visual indication of what system is detecting
     createOverlayCanvas();
     
-    // Initialize FaceDetector if available
+    // Initialize FaceDetector API if available (Chrome/Edge browsers)
+    // Effects: Enables advanced face detection with bounding boxes and landmarks
+    // Removal impact: Falls back to motion detection, less accurate monitoring
     if ('FaceDetector' in window) {
       try {
+        // Create FaceDetector instance with fast mode for real-time performance
+        // Effects: Enables accurate face detection for presence monitoring
+        // Removal impact: No face detection, system relies on motion detection only
         faceDetector = new window.FaceDetector({ fastMode: true });
         console.log('FaceDetector API initialized');
       } catch (error) {
+        // Handle FaceDetector initialization failure gracefully
+        // Effects: Provides fallback when FaceDetector fails to initialize
+        // Removal impact: System would crash instead of falling back to motion detection
         console.warn('FaceDetector initialization failed, using fallback:', error);
         faceDetector = null;
       }
     } else {
+      // FaceDetector not available, will use motion detection fallback
+      // Effects: Informs user that advanced face detection is not available
+      // Removal impact: No indication of detection method being used
       console.log('FaceDetector API not available, using Canvas fallback');
     }
     
-    // Initialize canvas for fallback detection
+    // Debug log to show which detection method is being used
+    // Effects: Helps developers understand which detection algorithm is active
+    // Removal impact: No debugging information about detection method
     console.log(faceDetector);
     
+    // Initialize canvas for motion detection fallback if FaceDetector unavailable
+    // Effects: Sets up alternative detection method for broader browser compatibility
+    // Removal impact: No fallback detection, system would fail on unsupported browsers
     if (!faceDetector) {
+      // Create hidden canvas for frame analysis
       const canvas = document.createElement('canvas');
+      // Set canvas size to match video dimensions
       canvas.width = videoElement.videoWidth || 640;
       canvas.height = videoElement.videoHeight || 480;
+      // Get 2D context with optimization for frequent pixel reading
       canvasContext = canvas.getContext('2d', { willReadFrequently: true });
     }
     
   } catch (error) {
+    // Handle specific camera access errors with user-friendly messages
+    // Effects: Provides clear error messages for different failure scenarios
+    // Removal impact: Generic error messages, harder for users to understand issues
     if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
       throw new Error('Camera access denied. Please grant camera permissions to use presence detection.');
     } else if (error.name === 'NotFoundError') {
@@ -139,23 +249,37 @@ function createOverlayCanvas() {
 }
 
 /**
- * Stops the webcam and releases resources
+ * Stops the webcam and releases all camera resources
+ * Effects on webpage: Turns off camera, hides preview, stops presence detection
+ * Called by: Timer reset, tab switching, app cleanup, presence loss
+ * Removal impact: Camera would stay on indefinitely, wasting battery and privacy concerns
  */
 export function stopCamera() {
+  // Stop all video tracks to release camera hardware
+  // Effects: Turns off camera LED, releases camera for other applications
+  // Removal impact: Camera would remain active, draining battery and privacy issues
   if (videoStream) {
     videoStream.getTracks().forEach(track => track.stop());
     videoStream = null;
   }
   
+  // Clear video element source to stop video display
+  // Effects: Removes camera feed from video element, hides preview
+  // Removal impact: Video element would show last frame indefinitely
   if (videoElement) {
     videoElement.srcObject = null;
   }
   
-  // Clear overlay canvas
+  // Clear overlay canvas to remove face tracking visualization
+  // Effects: Removes face detection boxes and status indicators
+  // Removal impact: Stale detection visualization would remain visible
   if (overlayContext) {
     overlayContext.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
   }
   
+  // Reset all module variables to clean state
+  // Effects: Ensures clean state for next camera initialization
+  // Removal impact: Stale references could cause errors on restart
   faceDetector = null;
   canvasContext = null;
   overlayCanvas = null;

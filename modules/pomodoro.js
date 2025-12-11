@@ -1,44 +1,66 @@
 /**
- * Pomodoro Module
- * Implements Pomodoro timer with work/break cycles and camera integration
- * Uses setInterval with drift correction for accurate countdown
+ * Pomodoro Module - Productivity timer with work/break cycles and presence monitoring
+ * Implements Pomodoro technique with camera integration for productivity tracking
+ * Uses setInterval with drift correction for accurate countdown timing
+ * Effects on webpage: Provides structured work sessions with automatic break transitions
+ * Used by: Main app for productivity timing, integrates with camera for presence detection
+ * Removal impact: No structured productivity timing, users lose Pomodoro technique benefits
  */
 
-// Import function to format milliseconds into readable time strings
+// Import function to format milliseconds into readable time strings for display
+// Effects: Enables proper time formatting in pomodoro timer display
+// Removal impact: Timer would show raw milliseconds, making it unreadable
 import { formatTime } from '../utils.js';
-// Import function to save completed sessions to database
+
+// Import function to save completed work sessions to database for history tracking
+// Effects: Enables persistence of completed pomodoro sessions for productivity tracking
+// Removal impact: No session history, users couldn't track their productivity over time
 import { addSession } from '../db.js';
-// Import audio functions for timer completion and absence alerts
+
+// Import audio functions for timer completion notifications and absence alerts
+// Effects: Provides audio feedback for timer events and presence monitoring
+// Removal impact: Silent timer, users might miss completions and absence warnings
 import { playContinuousAlert, stopContinuousAlert, playAbsenceAlert } from '../audio.js';
 
-// Default work duration: 25 minutes converted to milliseconds
+// Default work duration: 25 minutes converted to milliseconds (standard Pomodoro length)
+// Effects: Sets standard Pomodoro work session length, can be customized by user
+// Removal impact: No default work duration, timer initialization would fail
 let WORK_DURATION = 25 * 60 * 1000;
-// Default break duration: 5 minutes converted to milliseconds
+
+// Default break duration: 5 minutes converted to milliseconds (standard Pomodoro break)
+// Effects: Sets standard Pomodoro break length, can be customized by user
+// Removal impact: No default break duration, break transitions would fail
 let BREAK_DURATION = 5 * 60 * 1000;
 
-// Object to track the current state of the pomodoro timer
+// Object to track the current state of the pomodoro timer system
+// Effects: Maintains all timer state for accurate countdown and mode management
+// Removal impact: No state tracking, timer couldn't function or maintain accuracy
 let state = {
   isRunning: false,                    // Whether timer is currently counting down
-  mode: 'work',                        // Current mode: 'work' or 'break'
-  remainingTime: WORK_DURATION,        // Milliseconds left in current session
-  intervalId: null,                    // ID of setInterval for cleanup
-  lastTickTime: 0,                     // Timestamp of last tick for drift correction
-  workSessionStartTime: 0              // When current work session started (for database)
+  mode: 'work',                        // Current mode: 'work' or 'break' for UI display
+  remainingTime: WORK_DURATION,        // Milliseconds left in current session for countdown
+  intervalId: null,                    // ID of setInterval for proper cleanup and control
+  lastTickTime: 0,                     // Timestamp of last tick for drift correction accuracy
+  workSessionStartTime: 0              // When current work session started (for database duration)
 };
 
-// Variables to hold references to DOM elements
-let container = null;        // Main container element for pomodoro UI
-let displayElement = null;   // Element showing the countdown time
-let modeElement = null;      // Element showing "Work Time" or "Break Time"
-let startButton = null;      // Button to start/resume timer
-let pauseButton = null;      // Button to pause timer
-let resetButton = null;      // Button to reset timer to initial state
-let warningElement = null;   // Element showing absence warning message
+// Variables to hold references to DOM elements for UI manipulation
+// Effects: Provides access to UI elements for updates and event handling
+// Removal impact: No UI control, timer display and interactions would be broken
+let container = null;        // Main container element for pomodoro UI structure
+let displayElement = null;   // Element showing the countdown time to user
+let modeElement = null;      // Element showing "Work Time" or "Break Time" status
+let startButton = null;      // Button to start/resume timer functionality
+let pauseButton = null;      // Button to pause timer during sessions
+let resetButton = null;      // Button to reset timer to initial work state
+let warningElement = null;   // Element showing absence warning message during monitoring
 
-// Object containing callback functions for camera control
+// Object containing callback functions for camera control integration
+// Effects: Enables communication between pomodoro timer and camera system
+// Removal impact: No camera integration, presence monitoring would be disconnected
 let cameraCallbacks = {
-  onStart: null,  // Function to call when camera should start
-  onStop: null    // Function to call when camera should stop
+  onStart: null,  // Function to call when camera monitoring should start
+  onStop: null    // Function to call when camera monitoring should stop
 };
 
 /**
